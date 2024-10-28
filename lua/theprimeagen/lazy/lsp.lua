@@ -3,6 +3,7 @@ return {
     dependencies = {
         "williamboman/mason.nvim",
         "williamboman/mason-lspconfig.nvim",
+        "WhoIsSethDaniel/mason-tool-installer.nvim",
         "hrsh7th/cmp-nvim-lsp",
         "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path",
@@ -11,11 +12,25 @@ return {
         "L3MON4D3/LuaSnip",
         "saadparwaiz1/cmp_luasnip",
         "j-hui/fidget.nvim",
+        "rafamadriz/friendly-snippets", -- useful snippets
+        "onsails/lspkind.nvim",
+        { "antosha417/nvim-lsp-file-operations", config = true },
+        { "folke/neodev.nvim",                   opts = {} }, -- vs-code like pictograms
     },
 
     config = function()
         local cmp = require('cmp')
+        -- import lspconfig plugin
+        local lspconfig = require("lspconfig")
+
+        -- import mason_lspconfig plugin
+        local mason_lspconfig = require("mason-lspconfig")
+
+        local mason_tool_installer = require("mason-tool-installer")
+
+        -- import cmp-nvim-lsp plugin
         local cmp_lsp = require("cmp_nvim_lsp")
+        local lspkind = require("lspkind")
         local capabilities = vim.tbl_deep_extend(
             "force",
             {},
@@ -29,6 +44,15 @@ return {
                 "lua_ls",
                 "rust_analyzer",
                 "gopls",
+                -- "tsserver",
+                "html",
+                "cssls",
+                "tailwindcss",
+                "svelte",
+                "graphql",
+                "emmet_ls",
+                "prismals",
+                "pyright",
             },
             handlers = {
                 function(server_name) -- default handler (optional)
@@ -51,7 +75,6 @@ return {
                     })
                     vim.g.zig_fmt_parse_errors = 0
                     vim.g.zig_fmt_autosave = 0
-
                 end,
                 ["lua_ls"] = function()
                     local lspconfig = require("lspconfig")
@@ -73,6 +96,9 @@ return {
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
         cmp.setup({
+            completion = {
+                completeopt = "menu,menuone,preview,noselect",
+            },
             snippet = {
                 expand = function(args)
                     require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
@@ -87,6 +113,7 @@ return {
             sources = cmp.config.sources({
                 { name = 'nvim_lsp' },
                 { name = 'luasnip' }, -- For luasnip users.
+                { name = "path" },
             }, {
                 { name = 'buffer' },
             })
@@ -101,6 +128,21 @@ return {
                 source = "always",
                 header = "",
                 prefix = "",
+            },
+            -- configure lspkind for vs-code like pictograms in completion menu
+            formatting = {
+                format = lspkind.cmp_format({
+                    maxwidth = 50,
+                    ellipsis_char = "...",
+                }),
+            },
+        })
+        mason_tool_installer.setup({
+            ensure_installed = {
+                "prettier", -- prettier formatter
+                "stylua",   -- lua formatter
+                "isort",    -- python formatter
+                "black",    -- python formatter
             },
         })
     end
